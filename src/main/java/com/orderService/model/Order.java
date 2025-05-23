@@ -23,4 +23,8 @@ public class Order {
     private Double totalPrice;
     private String status;
 
+    //kafka
+    private String customerName;
+    private String customerEmail;
+
 }
