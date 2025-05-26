@@ -6,21 +6,30 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Entity
-@Table(name="orders") 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name="orders")
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderID;
-    @Column(name = "UserID")
-    private Long userId;  // ✅ camelCase field name
+    private Integer orderID;
+    @Column(name = "order_qty")
+    private Integer orderQty;
 
     private String productList;
+
     private Double totalPrice;
+
     private String status;
 
 }

@@ -16,29 +16,47 @@ import com.orderService.model.Order;
 import com.orderService.service.OrderService;
 
 @RestController
-@RequestMapping(value = "/api/orders")
+@RequestMapping("/api/orders")
 public class OrderController {
+
     @Autowired
     private OrderService orderService;
 
-    @PostMapping("/{userId}")
-    public ResponseEntity<Order> createProduct(@RequestBody Order order) {
-        return ResponseEntity.ok(orderService.addOrder(order));
+    @PostMapping("/createOrder")
+    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+        return ResponseEntity.ok(orderService.createOrder(order));
     }
 
-    @GetMapping("/all")
+    @GetMapping("/getAllOrders")
     public ResponseEntity<List<Order>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
-    @GetMapping("/user/{userId}")
-    public List<Order> getOrdersByUserId(@PathVariable Long userId) {
-        return orderService.getOrdersByUserId(userId);
+    @GetMapping("/getOrderbyId/{id}")
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+        return orderService.getOrderById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{OrderID}")
-    public ResponseEntity<String> deleteOrder(@PathVariable Long OrderID) {
-        orderService.deleteOrder(OrderID);
-        return ResponseEntity.ok("Order deleted successfully");
+    // @PutMapping("/modifyOrder/{id}")
+    // public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+    //     try {
+    //         return ResponseEntity.ok(orderService.updateOrder(id, order));
+    //     } catch (RuntimeException e) {
+    //         return ResponseEntity.status(409).build(); 
+    //     }
+    // }
+
+    @DeleteMapping("/deleteOrder/{id}")
+    public ResponseEntity<String> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok("Order has been deleted successfully");
     }
+
+    // @ExceptionHandler(value = InsufficientStockException.class)
+    // @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    // public ErrorResponse handleNoSuchCustomerExistsException(InsufficientStockException ex) {
+    //     return new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
+    // }
 }
