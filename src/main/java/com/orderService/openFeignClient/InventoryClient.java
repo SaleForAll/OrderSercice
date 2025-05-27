@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.orderService.model.Inventory;
 
-@FeignClient(name = "Inventory-service", url = "http://localhost:2222/api/inventory")
+@FeignClient(name = "INVENTORY-SERVICE", url = "http://localhost:2222/api/inventory")
 public interface InventoryClient {
 
     @GetMapping("/{id}")
