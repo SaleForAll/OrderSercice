@@ -19,6 +19,8 @@ public class OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private InventoryClient inventoryClient;
+     @Autowired
+    private OrderEventPublisher eventPublisher;
 
     public Order createOrder(Order order) {
       //Search the available current stock
@@ -31,6 +33,7 @@ public class OrderService {
         }
         order.setStatus("CREATED");
         Order savedOrder = orderRepository.save(order); // Save the order first
+        eventPublisher.publishOrderCreatedEvent(savedOrder);
         // Update reserved stock
         inventory.setReservedStock(enteredStock);
         inventoryClient.updateReservedtStockToInvt(order.getOrderQty(),inventory);

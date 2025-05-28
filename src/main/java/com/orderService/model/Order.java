@@ -25,11 +25,12 @@ public class Order {
     private Integer orderID;
     @Column(name = "order_qty")
     private Integer orderQty;
-
     private String productList;
-
     private Double totalPrice;
-
     private String status;
+
+       //kafka
+    private String customerName;
+    private String customerEmail;
 
 }
