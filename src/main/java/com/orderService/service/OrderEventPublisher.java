@@ -2,6 +2,7 @@ package com.orderService.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.orderService.exception.KafkaPublishException;
 import com.orderService.model.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,14 +24,24 @@ public class OrderEventPublisher {
 	private static final String ORDER_CREATED_TOPIC = "order.created";
 
 	public void publishOrderCreatedEvent(Order order) {
+		String orderJson = serializeOrder(order);  // Can throw KafkaPublishException
+		sendMessage(orderJson);                    // Can throw KafkaPublishException
+		logger.info("Published order.created event for order ID: {}", order.getOrderID());
+	}
+
+	private String serializeOrder(Order order) {
 		try {
-			String orderJson = objectMapper.writeValueAsString(order);
-			kafkaTemplate.send(ORDER_CREATED_TOPIC, orderJson);
-			logger.info("Published order.created event for order ID: {}", order.getOrderID());
+			return objectMapper.writeValueAsString(order);
 		} catch (JsonProcessingException e) {
-			logger.error("Failed to serialize order for Kafka: {}", e.getMessage(), e);
+			throw new KafkaPublishException("Failed to serialize order to JSON for Kafka", e);
+		}
+	}
+
+	private void sendMessage(String orderJson) {
+		try {
+			kafkaTemplate.send(ORDER_CREATED_TOPIC, orderJson);
 		} catch (Exception e) {
-			logger.error("Kafka publishing failed: {}", e.getMessage(), e);
+			throw new KafkaPublishException("Failed to send order.created event to Kafka", e);
 		}
 	}
 }
