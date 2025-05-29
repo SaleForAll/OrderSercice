@@ -1,5 +1,7 @@
 package com.orderService.service;
 
+import com.orderService.exception.MessageParsingException;
+import com.orderService.exception.NotificationSendException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,23 +25,31 @@ public class NotificationConsumer {
     @KafkaListener(topics = "order.created", groupId = "notification-service")
     public void consumeOrderCreated(String message) {
         logger.info("Received order event: {}", message);
+        Order order = parseOrderMessage(message);  // Can throw MessageParsingException
+        sendEmailNotification(order);              // Can throw NotificationSendException
+    }
+
+    private Order parseOrderMessage(String message) {
         try {
-            Order order = objectMapper.readValue(message, Order.class);
-            sendEmailNotification(order);
+            return objectMapper.readValue(message, Order.class);
         } catch (JsonProcessingException e) {
-            logger.error("Failed to parse message: {}", message, e);
+            throw new MessageParsingException("Failed to parse order message: " + message, e);
         }
     }
 
     private void sendEmailNotification(Order order) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("naresh.shivangi@gmail.com");
-        message.setTo(order.getCustomerEmail()); // Ensure OrderEvent has this field
-        message.setSubject("Your Order Has Been Created!");
-        message.setText("Dear " + order.getCustomerName() + ",\n\n"
-                + "Your order with ID " + order.getOrderID() + " has been successfully created.\n\n"
-                + "Thank you for shopping with us!");
+        try {
+            SimpleMailMessage email = new SimpleMailMessage();
+            email.setFrom("naresh.shivangi@gmail.com");
+            email.setTo(order.getCustomerEmail());
+            email.setSubject("Your Order Has Been Created!");
+            email.setText("Dear " + order.getCustomerName() + ",\n\n"
+                    + "Your order with ID " + order.getOrderID() + " has been successfully created.\n\n"
+                    + "Thank you for shopping with us!");
 
-        mailSender.send(message);
+            mailSender.send(email);
+        } catch (Exception e) {
+            throw new NotificationSendException("Failed to send email notification for order ID: " + order.getOrderID(), e);
+        }
     }
 }

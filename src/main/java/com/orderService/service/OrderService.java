@@ -3,7 +3,9 @@ package com.orderService.service;
 import java.util.List;
 import java.util.Optional;
 
+import com.orderService.exception.OrderNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import com.orderService.exception.InsufficientStockException;
@@ -11,6 +13,7 @@ import com.orderService.model.Inventory;
 import com.orderService.model.Order;
 import com.orderService.openFeignClient.InventoryClient;
 import com.orderService.repository.OrderRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -39,10 +42,7 @@ public class OrderService {
         inventoryClient.updateReservedtStockToInvt(order.getOrderQty(),inventory);
         return savedOrder;
 
-
-
-
-    }
+   }
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -64,8 +64,25 @@ public class OrderService {
     //         }
     //     }).orElseThrow(() -> new RuntimeException("Order not found"));
     // }
-    
-    public void deleteOrder(Long OrderID) {
-        orderRepository.deleteById(OrderID);
+    @Transactional
+    public Order updateOrder(Long id, Order updatedOrder) {
+        return orderRepository.findById(id).map(order -> {
+            order.setProductList(updatedOrder.getProductList());
+            order.setTotalPrice(updatedOrder.getTotalPrice());
+            order.setStatus(updatedOrder.getStatus());
+            try {
+                return orderRepository.save(order);
+            } catch (OptimisticLockingFailureException e) {
+                throw new RuntimeException("Conflict: Order was modified by another transaction. Please retry.", e);
+            }
+        }).orElseThrow(() -> new OrderNotFoundException(id));
     }
+
+    public void deleteOrder(Long id) {
+        if (!orderRepository.existsById(id)) {
+            throw new OrderNotFoundException(id);
+        }
+        orderRepository.deleteById(id);
+    }
+
 }
