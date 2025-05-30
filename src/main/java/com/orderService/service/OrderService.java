@@ -3,17 +3,20 @@ package com.orderService.service;
 import java.util.List;
 import java.util.Optional;
 
-import com.orderService.exception.OrderNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.orderService.exception.InsufficientStockException;
+import com.orderService.exception.OrderNotFoundException;
 import com.orderService.model.Inventory;
 import com.orderService.model.Order;
 import com.orderService.openFeignClient.InventoryClient;
 import com.orderService.repository.OrderRepository;
-import org.springframework.transaction.annotation.Transactional;
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
 
 
 @Service
@@ -25,6 +28,7 @@ public class OrderService {
      @Autowired
     private OrderEventPublisher eventPublisher;
 
+    @CircuitBreaker(name = "INVENTORY-SERVICE", fallbackMethod ="getAllAvailableProducts")
     public Order createOrder(Order order) {
       //Search the available current stock
        Integer enteredStock = order.getOrderQty();
@@ -44,6 +48,12 @@ public class OrderService {
 
    }
 
+
+    public Order getAllAvailableProducts(Exception e) {
+    return new Order(1, 1, "Car", 99990.0, "Fallback-Sample", "Shivangi", "shivangi@gmail.com");
+   }
+
+
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
@@ -52,18 +62,6 @@ public class OrderService {
         return orderRepository.findById(id);
     }
 
-    // public Order updateOrder(Long id, Order updatedOrder) {
-    //     return orderRepository.findById(id).map(order -> {
-    //         order.setProductList(updatedOrder.getProductList());
-    //         order.setTotalPrice(updatedOrder.getTotalPrice());
-    //         order.setStatus(updatedOrder.getStatus());
-    //         try {
-    //             return orderRepository.save(order);
-    //         } catch (OptimisticLockingFailureException e) {
-    //             throw new RuntimeException("Conflict: Order was modified by another transaction. Please retry.", e);
-    //         }
-    //     }).orElseThrow(() -> new RuntimeException("Order not found"));
-    // }
     @Transactional
     public Order updateOrder(Long id, Order updatedOrder) {
         return orderRepository.findById(id).map(order -> {
