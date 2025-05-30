@@ -39,24 +39,10 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // @PutMapping("/modifyOrder/{id}")
-    // public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
-    //     try {
-    //         return ResponseEntity.ok(orderService.updateOrder(id, order));
-    //     } catch (RuntimeException e) {
-    //         return ResponseEntity.status(409).build(); 
-    //     }
-    // }
 
     @DeleteMapping("/deleteOrder/{id}")
     public ResponseEntity<String> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
         return ResponseEntity.ok("Order has been deleted successfully");
     }
-
-    // @ExceptionHandler(value = InsufficientStockException.class)
-    // @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    // public ErrorResponse handleNoSuchCustomerExistsException(InsufficientStockException ex) {
-    //     return new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
-    // }
 }
