@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.orderService.model.User;
 
 
-@FeignClient(name = "USER-SERVICE", url = "http://localhost:2224/api/users")
+@FeignClient(name = "USER-SERVICE", url = "http://user-services-esbgd7cvduebe4gx.canadacentral-01.azurewebsites.net/api/users")
 public interface UserClient {
 
     @GetMapping("/{userId}")
