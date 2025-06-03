@@ -1,17 +1,18 @@
 package com.orderService.service;
 
-import com.orderService.exception.MessageParsingException;
-import com.orderService.exception.NotificationSendException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.orderService.exception.MessageParsingException;
+import com.orderService.exception.NotificationSendException;
 import com.orderService.model.Order;
 
 @Component
@@ -44,11 +45,17 @@ public class NotificationConsumer {
             email.setTo(order.getCustomerEmail());
             email.setSubject("Your Order Has Been Created!");
             email.setText("Dear " + order.getCustomerName() + ",\n\n"
-                    + "Your order with ID " + order.getOrderID() + " has been successfully created.\n\n"
+                    + "Your order with ID " + order.getOrderID() + "and below order details:  \n\n"
+                    + "customer name: " + order.getCustomerName()+ ",\n\n" 
+                    + "customer email: "+ order.getCustomerEmail() + ",\n\n"
+                    +  "order Quantity: " + order.getOrderQty() + ",\n\n" 
+                    +  "Totalprice :" + order.getTotalPrice() + ",\n\n" 
+                    +  "product list: "+  order.getProductList() + "\n\n" 
+                    + " has been successfully created.\n\n"
                     + "Thank you for shopping with us!");
 
             mailSender.send(email);
-        } catch (Exception e) {
+        } catch (MailException e) {
             throw new NotificationSendException("Failed to send email notification for order ID: " + order.getOrderID(), e);
         }
     }

@@ -12,7 +12,9 @@ import com.orderService.exception.InsufficientStockException;
 import com.orderService.exception.OrderNotFoundException;
 import com.orderService.model.Inventory;
 import com.orderService.model.Order;
+import com.orderService.model.User;
 import com.orderService.openFeignClient.InventoryClient;
+import com.orderService.openFeignClient.UserClient;
 import com.orderService.repository.OrderRepository;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -25,8 +27,10 @@ public class OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private InventoryClient inventoryClient;
+    //  @Autowired
+    // private OrderEventPublisher eventPublisher;
      @Autowired
-    private OrderEventPublisher eventPublisher;
+    private UserClient userClient;
 
     @CircuitBreaker(name = "INVENTORY-SERVICE", fallbackMethod ="getAllAvailableProducts")
     public Order createOrder(Order order) {
@@ -39,8 +43,12 @@ public class OrderService {
             throw new InsufficientStockException("Insufficient current stock of " + currentStock + " and the order qty entered was " + order.getOrderQty());
         }
         order.setStatus("CREATED");
+        //check user details based on id 
+        User user = getUserDetailbyUserID(order.getUserId());
+        order.setCustomerName(user.getName());
+        order.setCustomerEmail(user.getEmail());
         Order savedOrder = orderRepository.save(order); // Save the order first
-        eventPublisher.publishOrderCreatedEvent(savedOrder);
+        // eventPublisher.publishOrderCreatedEvent(savedOrder);
         // Update reserved stock
         inventory.setReservedStock(enteredStock);
         inventoryClient.updateReservedtStockToInvt(order.getOrderQty(),inventory);
@@ -48,11 +56,19 @@ public class OrderService {
 
    }
 
-
     public Order getAllAvailableProducts(Exception e) {
-    return new Order(1, 1, "Car", 99990.0, "Fallback-Sample", "Shivangi", "shivangi@gmail.com");
+    return new Order(1, 1L, 1, "Car", 99990.0, "Fallback-Sample", "Shivangi", "shivangi@gmail.com");
    }
 
+   @CircuitBreaker(name = "USER-SERVICE", fallbackMethod ="tryLoginAgain")
+   public User getUserDetailbyUserID(Long userId){
+    return userClient.getUserDetailbyUserID(userId);
+   }
+
+   public User tryLoginAgain(Exception e){
+    return new User(1L,"dummy","fallback-method of userService", "");
+   }
+   
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
