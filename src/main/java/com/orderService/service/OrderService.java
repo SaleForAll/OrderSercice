@@ -27,8 +27,8 @@ public class OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private InventoryClient inventoryClient;
-    //  @Autowired
-    // private OrderEventPublisher eventPublisher;
+  @Autowired
+ private OrderEventPublisher eventPublisher;
      @Autowired
     private UserClient userClient;
 
@@ -48,7 +48,7 @@ public class OrderService {
         order.setCustomerName(user.getName());
         order.setCustomerEmail(user.getEmail());
         Order savedOrder = orderRepository.save(order); // Save the order first
-        // eventPublisher.publishOrderCreatedEvent(savedOrder);
+         eventPublisher.publishOrderCreatedEvent(savedOrder);
         // Update reserved stock
         inventory.setReservedStock(enteredStock);
         inventoryClient.updateReservedtStockToInvt(order.getOrderQty(),inventory);

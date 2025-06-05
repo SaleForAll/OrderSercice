@@ -21,7 +21,7 @@ public class OrderEventPublisher {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	private static final String ORDER_CREATED_TOPIC = "order.created";
+	private static final String ORDER_CREATED_TOPIC = "ecomtopic";
 
 	public void publishOrderCreatedEvent(Order order) {
 		String orderJson = serializeOrder(order);  // Can throw KafkaPublishException
