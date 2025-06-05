@@ -23,7 +23,7 @@ public class NotificationConsumer {
     private static final Logger logger = LoggerFactory.getLogger(NotificationConsumer.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @KafkaListener(topics = "order.created", groupId = "notification-service")
+    @KafkaListener(topics = "ecomtopic", groupId = "notification-service")
     public void consumeOrderCreated(String message) {
         logger.info("Received order event: {}", message);
         Order order = parseOrderMessage(message);  // Can throw MessageParsingException
